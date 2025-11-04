@@ -205,3 +205,17 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# User-specified
+.vscode/
+build/
+dist/
+resources/logo.ico
+resources/logo.png
+.cache
+build.bat
+headers_auth.json
+log.txt
+main_window.py
+TunesTransfer.spec
+ytmusic_cookies.json

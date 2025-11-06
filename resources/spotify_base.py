@@ -1,4 +1,4 @@
-import spotipy, re, os, sys
+import spotipy, re, os, sys, requests
 from pathlib import Path
 from spotipy import Spotify
 from spotipy.exceptions import SpotifyException
@@ -6,6 +6,7 @@ from spotipy.oauth2 import SpotifyOAuth, SpotifyClientCredentials
 from .common_tools import (generate_random_name, download_image, pick_best_match)
 from .exceptional import ClassicException
 from dotenv import load_dotenv
+from bs4 import BeautifulSoup
 
 # Load environment variables
 env_path = Path(getattr(sys, '_MEIPASS', Path(__file__).parent))
@@ -81,11 +82,35 @@ class SpotifyBase(SpotifyAuth):
         return self.spotify.playlist_upload_cover_image(playlist_id, img)
     
     #no-auth
+    def scrape_html_for_song_ids(self, playlist_id: str):
+        all_songs_ids = []
+        url = f"https://open.spotify.com/playlist/{playlist_id}"
+        html = requests.get(url).text
+
+        soup = BeautifulSoup(html, 'lxml')
+        meta = soup.find_all('meta')
+        for tag in meta:
+            if ('name' in tag.attrs) and (tag.attrs['name'] == 'music:song'):
+                song_id = re.search(r"/track/(\S+)", str(tag.attrs['content'])).group(1)
+                if song_id:
+                    all_songs_ids.append(song_id)
+
+        return all_songs_ids
+
+    #no-auth
     def get_all_song_ids_from_playlist(self, playlist_id: str) -> list:
         all_songs_ids = []
-        playlist = self.spotify.playlist_items(playlist_id, additional_types=("track"))
-        for track in playlist.get('items'):
-            all_songs_ids.append(track.get('track').get('id'))
+        try:
+            playlist = self.spotify.playlist_items(playlist_id, additional_types=("track"))
+            for track in playlist.get('items'):
+                all_songs_ids.append(track.get('track').get('id'))
+        except spotipy.exceptions.SpotifyException as e:
+            if e.http_status == 404:
+                print("--Seems like an auto-generated Spotify playlist, 30 song-limit applied--")
+                song_ids = self.scrape_html_for_song_ids(playlist_id)
+                if len(song_ids) == 0:
+                    raise ClassicException('No valid song IDs found from scraping the playlist URL\nPlease try a "user" public playlist...')
+                all_songs_ids = song_ids
         return all_songs_ids
     
     #auth

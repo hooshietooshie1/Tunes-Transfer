@@ -212,6 +212,7 @@ build/
 dist/
 resources/logo.ico
 resources/logo.png
+resources/tune_transfer_sp.py
 .cache
 build.bat
 headers_auth.json

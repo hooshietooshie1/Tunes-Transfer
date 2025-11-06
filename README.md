@@ -10,7 +10,7 @@ Transfer public playlists between distinct music platforms, currently including 
 
 ## Platform libraries used
 
-[Spotify](https://spotipy.readthedocs.io/en/2.25.1/)- OAuth2 authentication
+[Spotify](https://spotipy.readthedocs.io/en/2.25.1/)- OAuth2 authentication - Track search limit of 30 when transferring Spotify's auto-generated public playlists to Youtube Music
 
 [YTMusicAPI](https://ytmusicapi.readthedocs.io/en/latest/index.html) - Cookie-based authentication
 
